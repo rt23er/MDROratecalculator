@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--    引入vue-->
+    <title>MDROratecalculator</title>
+    <link rel="stylesheet" href="./css.css">
+    <script src="./cdn/vue.js"></script>
+    <script src="./cdn/elment.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+</head>
+<body>
+<div id="app">
+    <div class="top">
+        ML-Based Calculator to Multi-Drug Resistant Bacteria after Liver Transplantation
+    </div>
+
+
+        <div class="main">
+            <div class="inputItem">
+                <label>Gender</label>
+                <div class="input-box">
+                    <el-select style="width: 100%" v-model="gender" placeholder="Please Select Gender">
+                        <el-option label="Male" value="1"></el-option>
+                        <el-option label="Female" value="0"></el-option>
+                    </el-select>
+
+                </div>
+            </div>
+
+            <div class="inputItem">
+                <label>Hepatic</label>
+                <div class="input-box">
+                   <el-select style="width: 100%" v-model="HE" placeholder="Please Select Hepatic">
+                       <el-option label="Yes" value="1"></el-option>
+                       <el-option label="No" value="0"></el-option>
+                   </el-select>
+                </div>
+            </div>
+            <div class="inputItem">
+                <label>ICU length of days(days)</label>
+                <div class="input-box">
+                    <input type="number" v-model="ICU_LOS" placeholder="Please Enter ICU length of days">
+                    <div class="option">
+                        <i @click="change('ICU_LOS' , 1)" class="jia">+</i>
+                        <i @click="change('ICU_LOS' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+            <div class="inputItem">
+                <label>Total bilirubin(mg/dL) </label>
+                <div class="input-box">
+                    <input type="number" v-model="TBIL" placeholder="Please Enter Total bilirubin">
+                    <div class="option">
+                        <i @click="change('TBIL' , 1)" class="jia">+</i>
+                        <i @click="change('TBIL' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+            <div class="inputItem">
+                <label>Hospital stay(days)</label>
+                <div class="input-box">
+                    <input type="number" v-model="hospstay" placeholder="Hospital stay">
+                    <div class="option">
+                        <i @click="change('hospstay' , 1)" class="jia">+</i>
+                        <i @click="change('hospstay' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+            <div class="inputItem">
+                <label>Albumin(g/dL)</label>
+                <div class="input-box">
+                    <input type="number" v-model="ALB" placeholder="Please Enter Albumin">
+                    <div class="option">
+                        <i @click="change('ALB' , 1)" class="jia">+</i>
+                        <i @click="change('ALB' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inputItem">
+                <label>CRRT</label>
+                <div class="input-box">
+                  <el-select style="width: 100%" v-model="CRRT" placeholder="Please Select CRRT">
+                      <el-option label="Yes" value="1"></el-option>
+                      <el-option label="No" value="0"></el-option>
+                  </el-select>
+                </div>
+            </div>
+            <div class="inputItem">
+                <label>Dwell catheter(days)</label>
+                <div class="input-box">
+                    <input type="number" v-model="Dwell_catheter" placeholder="Please Enter Dwell catheter">
+                    <div class="option">
+                        <i @click="change('Dwell_catheter' , 1)" class="jia">+</i>
+                        <i @click="change('Dwell_catheter' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+            <!--        -->
+
+            <div class="inputItem">
+                <label>Diabetes</label>
+
+                <div class="input-box">
+                   <el-select style="width: 100%" v-model="DM" placeholder="Please Select Diabetes">
+                       <el-option label="Yes" value="1"></el-option>
+                       <el-option label="No" value="0"></el-option>
+                   </el-select>
+                </div>
+            </div>
+
+            <div class="inputItem">
+                <label>MElD(score)</label>
+                <div class="input-box">
+                    <input type="number" v-model="MELD" placeholder="Please Enter MElD" >
+                    <div class="option">
+                        <i @click="change('MELD' , 1)" class="jia">+</i>
+                        <i @click="change('MELD' , -1)" class="jian">-</i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="result">
+        <label>
+            MDRO(estimated MDRo infection Rate)
+        </label>
+        <input type="number" :placeholder="res.toFixed(2)" disabled>
+    </div>
+    <div class="btn-box">
+        <span @click="calc" class="btn">Calculate</span>
+        <span @click="reset" class="btn">Reset</span>
+    </div>
+
+
+
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                result: 0,
+                msg: 'Hello Vue!',
+                gender_S: -0.439, // 加s的为线性系数 (0,1)
+                ICU_LOS_S: 0.117, // 不限制
+                hospstay_S: 0.004, //不限制
+                CRRT_S: 0.042, // (0,1)
+                HE_S: 2.393, // (0,1)
+                TBIL_S: 0.026, // 不限制
+                ALB_S: 0.03, //不限制
+                Dwell_catheter_S: 0.053, //不限制
+                DM_S: 0.931,// (0,1)
+                MELD_S: 0.09,//不限制
+                DEF: -2.004,
+                gender: null,
+                ICU_LOS: null,
+                hospstay: null,
+                CRRT: null,
+                HE: null,
+                TBIL: null,
+                ALB: null,
+                Dwell_catheter: null,
+                DM: null,
+                MELD: null,
+            }
+
+
+        }
+        ,
+        mounted() {
+
+
+            let width = document.documentElement.clientWidth;
+            let baseFontSize = 30; // 设定基准字体大小
+            document.querySelector('.top').style.fontSize = (width / 1920 * baseFontSize) + 'px';
+
+            if (width < 750) {
+                // 改变样式
+                document.querySelector('.top').style.setProperty('font-size', '16px', 'important');
+                document.querySelector('.main').style.width = '100%';
+            //
+            } else {
+                document.querySelector('.main').style.width = '50%';
+            }
+            if(width < 400) {
+            //     设置根元素的字体大小
+                document.querySelector('html').style.fontSize = '12px';
+            }
+
+            if(width < 300) {
+                //     设置根元素的字体大小
+                document.querySelector('html').style.fontSize = '11px';
+            }
+
+            // 监听窗口变化
+            this.$nextTick(function () {
+                this.windowResize();
+            })
+        //
+        },
+        methods: {
+            //     监听窗口变化
+            windowResize() {
+
+                // 监听窗口变化
+                window.onresize = () => {
+                    // 获取窗口的宽度
+                    let width = document.documentElement.clientWidth;
+                    let baseFontSize = 30; // 设定基准字体大小
+                    document.querySelector('.top').style.fontSize = (width / 1920 * baseFontSize) + 'px';
+
+                    if (width < 750) {
+                        // 改变样式
+                        document.querySelector('.top').style.setProperty('font-size', '16px', 'important');
+                        document.querySelector('.main').style.width = '100%';
+                    } else {
+                        document.querySelector('.main').style.width = '50%';
+                    }
+                }
+            } ,
+            calc() {
+                this.result = this.DEF + this.gender_S * this.gender + this.ICU_LOS_S * this.ICU_LOS + this.hospstay_S * this.hospstay + this.CRRT_S * this.CRRT + this.HE_S * this.HE + this.TBIL_S * this.TBIL + this.ALB_S * this.ALB + this.Dwell_catheter_S * this.Dwell_catheter + this.DM_S * this.DM + this.MELD_S * this.MELD;
+                // console.log(this.result);
+            } ,
+            change(dataName, value )  {
+
+                this[dataName] += value;
+                // 有时候小数会变成科学计数法，所以要转成字符串再转回来
+                this[dataName] = parseFloat(this[dataName].toFixed(2));
+
+                console.log(this[dataName]);
+            },
+            reset() {
+                this.result = 0;
+                this.gender = 0;
+                this.ICU_LOS = 0;
+                this.hospstay = 0;
+                this.CRRT = 0;
+                this.HE = 0;
+                this.TBIL = 0;
+                this.ALB = 0;
+                this.Dwell_catheter = 0;
+                this.DM = 0;
+                this.MELD = 0;
+            } ,
+        //     限制输入框的数字范围 传入一个 dataname 和一个范围
+
+        } ,
+        computed: {
+        res() {
+            if (this.result < 0) {
+                return 0;
+            }
+            if (this.result > 1) {
+                return 1;
+            }
+            return this.result;
+        }
+        }
+    })
+</script>
+</body>
+</html>
+
